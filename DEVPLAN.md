@@ -2,6 +2,8 @@
 ## 1. Resources
 * https://github.com/noi-techpark/webcomp-generic-map
 * https://github.com/noi-techpark/webcomp-boilerplate
+* https://tourism.api.opendatahub.com 
+* https://mobility.api.opendatahub.com
 
 ## 2. To-Do List
 * Copy `webcomp-generic-map` repository

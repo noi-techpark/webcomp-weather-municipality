@@ -1,11 +1,16 @@
 # Development Plan
-## 1. Resources
+## 1. Development / Deployment on Docker
+* In order to release changes to the docker environment run: `docker-compose run --rm app /bin/bash -c "npm run build"`
+* Start the container using: `docker-compose up --build --detach`
+* Stop the container using: `docker-compose stop`
+
+## 2. Resources
 * https://github.com/noi-techpark/webcomp-generic-map
 * https://github.com/noi-techpark/webcomp-boilerplate
 * https://tourism.api.opendatahub.com 
 * https://mobility.api.opendatahub.com
 
-## 2. To-Do List
+## 3. To-Do List
 * Copy `webcomp-generic-map` repository
 * Fetch current weather for municipalities
 * Fetch weather-forecast for municipalities
@@ -16,13 +21,13 @@
 * Show detailed weather for municipalities (including historic weather)
 * Show events for municipalities
 
-## 3. Features
+## 4. Features
 * Show current weather by municipality
 * Show weather forecast by municipality
 * Show Historic weather by municipality
 * Show Events by municipality
 * Show webcamps by municipality?
 
-## 4. Which APIs to use?
+## 5. Which APIs to use?
 TBD
 * 

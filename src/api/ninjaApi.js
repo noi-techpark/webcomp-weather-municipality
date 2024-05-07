@@ -45,25 +45,6 @@ export function callTourismGet(path, params) {
 		});
 }
 
-export async function fetchStations(type) {
-	console.log(type)
-	return callMobilityGet("/flat/" + (type || '*'), {
-			limit: -1,
-			select: "scode,stype,sname,sorigin,scoordinate,smetadata,pcode",
-			where: "scoordinate.neq.null,sactive.eq.true",
-			distinct: true,
-			origin: config.ORIGIN
-		})
-		.then(response => {
-			this.stations = response.data;
-		})
-		.catch(e => {
-			console.log(e)
-			throw e;
-		});
-}
-
-
 export async function fetchMunicipalities(pageNumber, pageSize) {
 	console.log(pageNumber,pageSize)
 	//TODO: retrieve only data that is relevant
@@ -82,3 +63,42 @@ export async function fetchMunicipalities(pageNumber, pageSize) {
 			throw e;
 		});
 }
+
+export async function fetchWeatherForecast(pageNumber, pageSize) {
+	console.log(pageNumber,pageSize)
+	//TODO: retrieve only data that is relevant
+	return callTourismGet("/Weather/Forecast/", {
+		limit: -1,
+		select: "",
+		where: "odhactive.eq.true,active.eq.true",
+		distinct: true,
+		origin: config.ORIGIN
+	})
+	.then(response => {
+		this.weatherForecasts = response;
+	})
+	.catch(e => {
+		console.log(e)
+		throw e;
+	});
+}
+
+/*
+export async function fetchStations(type) {
+	console.log(type)
+	return callMobilityGet("/flat/" + (type || '*'), {
+			limit: -1,
+			select: "scode,stype,sname,sorigin,scoordinate,smetadata,pcode",
+			where: "scoordinate.neq.null,sactive.eq.true",
+			distinct: true,
+			origin: config.ORIGIN
+		})
+		.then(response => {
+			this.stations = response.data;
+		})
+		.catch(e => {
+			console.log(e)
+			throw e;
+		});
+}
+*/

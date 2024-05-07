@@ -5,10 +5,11 @@ import style__leaflet from 'leaflet/dist/leaflet.css';
 import style__markercluster from 'leaflet.markercluster/dist/MarkerCluster.css';
 import style from './scss/main.scss';
 import { getStyle, rainbow } from './utils.js';
-import { fetchStations, fetchMunicipalities } from './api/ninjaApi.js';
+import { fetchMunicipalities, fetchWeatherForecast } from './api/ninjaApi.js';
 
 export class MapWidget extends LitElement {
 
+  /*
   static get properties() {
     return {
       propStationTypes: {
@@ -17,6 +18,7 @@ export class MapWidget extends LitElement {
       },
     };
   }
+  */
 
   constructor() {
     super();
@@ -32,9 +34,9 @@ export class MapWidget extends LitElement {
     this.language = 'de';
 
     /* Data fetched from Open Data Hub */
-    this.stations = [];
     this.municipalities = [];
-    this.stationTypes = {};
+    this.weatherForecasts = [];
+
     this.colors = [
       "green",
       "blue",
@@ -43,8 +45,8 @@ export class MapWidget extends LitElement {
     ];
 
     /* Requests */
-    this.fetchStations = fetchStations.bind(this);
     this.fetchMunicipalities = fetchMunicipalities.bind(this);
+    this.fetchWeatherForecast = fetchWeatherForecast.bind(this);
   }
 
   async initializeMap() {
@@ -61,105 +63,55 @@ export class MapWidget extends LitElement {
   }
 
   async drawMap() {
-    await this.fetchStations(this.propStationTypes);
     await this.fetchMunicipalities(1, 100);
-    let columns_layer_array = [];
+    await this.fetchWeatherForecast(1, 100);
+    this.addWeatherForecastToMunicipality();
 
-    //this.addStationsLayer(columns_layer_array);
+    let columns_layer_array = [];
+    
     this.addMunicipalitiesLayer(columns_layer_array);
   }
 
-  addStationsLayer(columns_layer_array) {
-    this.stations.map(station => {
+  addWeatherForecastToMunicipality() {
+    this.municipalities = this.municipalities.map(municipality => {
+      let weatherForecast = [];
 
-      if (!(station.stype in this.stationTypes)) {
-        let cnt = Object.keys(this.stationTypes).length;
-        this.stationTypes[station.stype] = rainbow(4000, Math.random() * 4000);
+      let apiWeatherForecast = this.weatherForecasts.filter(weatherForecast => weatherForecast.LocationInfo.MunicipalityInfo.Id === municipality.Id);
+      //console.log('###DEBUG: municipality',municipality);
+      //console.log('###DEBUG: apiWeatherForecast',apiWeatherForecast);
+      if ((apiWeatherForecast !== undefined) && (apiWeatherForecast[0] !== undefined)) {
+        weatherForecast = apiWeatherForecast[0].ForeCastDaily.filter(dailyForecast => dailyForecast.WeatherDesc !== null);
       }
 
-      const pos = [
-        station.scoordinate.y,
-        station.scoordinate.x
-      ];
-
-      let fillChar = station.pcode ? '#' : '&nbsp;';
-
-      let icon = L.divIcon({
-        html: '<div class="marker"><div style="background-color: ' + this.stationTypes[station.stype] + '">' + fillChar + '</div></div>',
-        iconSize: L.point(25, 25)
-      });
-
-      let popupCont = '<div class="popup"><b>' + station.sname + '</b><br /><i>' + station.stype + '</i>';
-      popupCont += '<table>';
-      Object.keys(station.smetadata).forEach(key => {
-        let value = station.smetadata[key];
-        if (value) {
-          popupCont += '<tr>';
-          popupCont += '<td>' + key + '</td>';
-          if (value instanceof Object) {
-            let act_value = value[this.language];
-            if (typeof act_value === 'undefined') {
-              act_value = value[this.language_default];
-            }
-            if (typeof act_value === 'undefined') {
-              act_value = '<pre style="background-color: lightgray">' + JSON.stringify(value, null, 2) + '</pre>';
-            }
-            popupCont += '<td><div class="popupdiv">' + act_value + '</div></td>';
-          } else {
-            popupCont += '<td>' + value + '</td>';
-          }
-          popupCont += '</tr>';
-        }
-      });
-      popupCont += '</table></div>';
-
-      let popup = L.popup().setContent(popupCont);
-
-      let marker = L.marker(pos, {
-        icon: icon,
-      }).bindPopup(popup);
-
-      columns_layer_array.push(marker);
-    });
-
-    this.visibleStations = columns_layer_array.length;
-    let columns_layer = L.layerGroup(columns_layer_array, {});
-
-    /** Prepare the cluster group for station markers */
-    this.layer_columns = new L.MarkerClusterGroup({
-      showCoverageOnHover: false,
-      chunkedLoading: true,
-      iconCreateFunction: function (cluster) {
-        return L.divIcon({
-          html: '<div class="marker_cluster__marker">' + cluster.getChildCount() + '</div>',
-          iconSize: L.point(36, 36)
-        });
+      return {
+        ...municipality,
+        weatherForecast: weatherForecast,
       }
-    });
-    /** Add maker layer in the cluster group */
-    this.layer_columns.addLayer(columns_layer);
-    /** Add the cluster group to the map */
-    this.map.addLayer(this.layer_columns);
+    })
   }
 
   addMunicipalitiesLayer(columns_layer_array) {
     this.municipalities.map(municipality => {
-      //DEBUG: console.log('adding municipality',municipality)
-
       const pos = [
         municipality.Latitude,
         municipality.Longitude
       ];
 
-      let fillChar = municipality.Id ? '#' : '&nbsp;';
+      let fillChar = municipality.Id ? 'M' : '&nbsp;';
 
       let icon = L.divIcon({
-        html: '<div class="marker"><div style="background-color: green;">' + fillChar + '</div></div>',
+        html: '<div class="marker"><div style="background-color: black;">' + fillChar + '</div></div>',
         iconSize: L.point(25, 25)
       });
 
-      let popupCont = '<div class="popup"><b>' + municipality.Plz + '</b><br /><i>' + municipality.Shortname + '</i>';
+      /**  Popup Window Content  **/
+      let popupCont = '<div class="popup"><h3>' + municipality.Plz + ' ' + municipality.Shortname + '</h3>';
+      popupCont += '<h4>Weather Forecast</h4>'
       popupCont += '<table>';
+      municipality.weatherForecast.forEach(ForeCastDaily => {
+        popupCont += `<tr><td>${ForeCastDaily.Date}</td><td>${ForeCastDaily.WeatherDesc}</td><td><img src='${ForeCastDaily.WeatherImgUrl}' /></td></tr>`
+      })
+      popupCont += '</table>';
       /*
       //TODO: Add data relative to municipality
       Object.keys(station.smetadata).forEach(key => {
@@ -183,7 +135,7 @@ export class MapWidget extends LitElement {
         }
       });
       */
-      popupCont += '</table></div>';
+      popupCont += '</div>';
 
       let popup = L.popup().setContent(popupCont);
 
@@ -197,7 +149,7 @@ export class MapWidget extends LitElement {
     this.visibleMunicipalities = columns_layer_array.length;
     let columns_layer = L.layerGroup(columns_layer_array, {});
 
-    /** Prepare the cluster group for station markers */
+    /** Prepare the cluster group for municipality markers */
     this.layer_columns = new L.MarkerClusterGroup({
       showCoverageOnHover: false,
       chunkedLoading: true,

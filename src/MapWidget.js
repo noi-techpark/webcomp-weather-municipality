@@ -4,39 +4,38 @@ import leaflet_mrkcls from 'leaflet.markercluster';
 import style__leaflet from 'leaflet/dist/leaflet.css';
 import style__markercluster from 'leaflet.markercluster/dist/MarkerCluster.css';
 import style from './scss/main.scss';
-import { getStyle } from './utils.js';
+import { formatDate, getStyle } from './utils.js';
 import { fetchMunicipalities, fetchWeatherForecasts, fetchPointsOfInterest } from './api/ninjaApi.js';
 
 export class MapWidget extends LitElement {
 
-  /*
   static get properties() {
     return {
-      propStationTypes: {
+      propLanguage: {
         type: String,
-        attribute: 'station-types'
+        attribute: 'language'
       },
     };
   }
-  */
 
   constructor() {
     super();
 
     /* Map configuration */
     this.map_center = [46.479, 11.331];
-    this.map_zoom = 9;
+    this.map_zoom = 10;
     this.map_layer = "https://cartodb-basemaps-{s}.global.ssl.fastly.net/rastertiles/voyager/{z}/{x}/{y}.png";
     this.map_attribution = '<a target="_blank" href="https://opendatahub.com">OpenDataHub.com</a> | &copy; <a target="_blank" href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>, &copy; <a target="_blank" href="https://carto.com/attribution">CARTO</a>';
 
     /* Internationalization */
     this.language_default = 'en';
-    this.language = 'de';
+    this.language = this.propLanguage ? this.propLanguage : 'de';
 
     /* Data fetched from Open Data Hub */
     this.municipalities = [];
     this.weatherForecasts = [];
     this.pointsOfInterest = [];
+    this.lastClickedLatLong = null;
 
     this.colors = [
       "green",
@@ -67,8 +66,6 @@ export class MapWidget extends LitElement {
   async drawMap() {
     await this.fetchMunicipalities(1, 100);
     await this.fetchWeatherForecasts(1, 100);
-    // await this.fetchPointsOfInterest(1, 100);
-    // (pageNumber, pageSize, latitude, longitude, radius)
 
     this.addWeatherForecastToMunicipality();
 
@@ -76,7 +73,6 @@ export class MapWidget extends LitElement {
     let poi_markers_list = [];
     
     this.addMunicipalitiesLayer(municipality_markers_list);
-    console.log('pois',this.pointsOfInterest);
     if (this.pointsOfInterest.length > 0)
       this.addPointsOfInterestLayer(poi_markers_list);
   }
@@ -85,9 +81,17 @@ export class MapWidget extends LitElement {
     this.municipalities = this.municipalities.map(municipality => {
       let weatherForecast = [];
 
-      let apiWeatherForecast = this.weatherForecasts.filter(weatherForecast => weatherForecast.LocationInfo.MunicipalityInfo.Id === municipality.Id);
-      if ((apiWeatherForecast !== undefined) && (apiWeatherForecast[0] !== undefined)) {
-        weatherForecast = apiWeatherForecast[0].ForeCastDaily.filter(dailyForecast => dailyForecast.WeatherDesc !== null);
+      let apiWeatherForecast = this.weatherForecasts
+        .filter(weatherForecast => weatherForecast.LocationInfo.MunicipalityInfo.Id === municipality.Id)
+        .map(weatherForecast => weatherForecast.ForeCastDaily)[0];
+      
+      if ((apiWeatherForecast !== undefined) && (apiWeatherForecast.length > 0)) {
+        weatherForecast = apiWeatherForecast
+          .filter(dailyForecast => dailyForecast.WeatherDesc !== null)
+          .filter(dailyForecast => {
+            return new Date(dailyForecast.Date) > new Date();
+          })
+          .slice(0,3);  // Limit to a maximum of 3 Entries
       }
 
       return {
@@ -111,32 +115,57 @@ export class MapWidget extends LitElement {
         iconSize: L.point(25, 25)
       });
 
-      /**  Popup Window Content  **/
-      let popupCont = '<div class="popup"><h3>' + municipality.Plz + ' ' + municipality.Shortname + '</h3>';
-      popupCont += '<h4>Weather Forecast</h4>'
-      popupCont += '<table>';
-      municipality.weatherForecast.forEach(ForeCastDaily => {
-        popupCont += `<tr><td>${ForeCastDaily.Date}</td><td>${ForeCastDaily.WeatherDesc}</td><td><img src='${ForeCastDaily.WeatherImgUrl}' /></td></tr>`
-      })
-      popupCont += '</table>';
-      popupCont += '</div>';
+      /** Popup Window Content **/
+      let popupCont = `
+      <div class="popup">
+        <div class="popup-header">
+          <h3>${municipality.Plz} ${municipality.Shortname}</h3>
+        </div>
+        <div class="popup-body">
+          <div class="tabs">
+            <button class="tablinks" data-tab="WeatherForecast">Weather Forecast</button>
+            <button class="tablinks" data-tab="Details">Details</button>
+          </div>
+          <div id="WeatherForecast" class="tabcontent" style="display: block;">
+            <h4>Weather Forecast</h4>
+            <table>`;
+              municipality.weatherForecast.forEach(ForeCastDaily => {
+                popupCont += `<tr><td>${formatDate(ForeCastDaily.Date)}</td><td>${ForeCastDaily.WeatherDesc}</td><td><img src='${ForeCastDaily.WeatherImgUrl}' /></td></tr>`;
+              });
+            popupCont += `</table>
+          </div>
+          <div id="Details" class="tabcontent" style="display: none;">
+            <h4>Details</h4>
+            <p>More details here...</p>
+          </div>
+        </div>
+      </div>`;
 
       let popup = L.popup().setContent(popupCont);
+
+      popup.on('add', () => {
+        this.openTab(null, 'WeatherForecast');  // Stellt sicher, dass 'Weather' sofort sichtbar ist
+      });
 
       let marker = L.marker(pos, {
         icon: icon,
       }).bindPopup(popup);
 
       marker.on('click', async (e) => {
-        //TODO: clear any currently shown POI
-        if (this.poi_layer_columns !== undefined)
-          this.map.removeLayer(this.poi_layer_columns);
-
-        //TODO: fetch POI based on latlong
         const latlng = e.latlng;
+        if ((this.lastClickedLatLong !== null) && (this.lastClickedLatLong.lat === latlng.lat) && (this.lastClickedLatLong.lng === latlng.lng))
+          return; // No action required
+        this.lastClickedLatLong = latlng;
+
+        // Clear existing layer of POI
+        if (this.poi_layer_columns !== undefined) {
+          this.map.removeLayer(this.poi_layer_columns);
+        }
+
+        // Fetch POI near selected Lat/Lon
         await this.fetchPointsOfInterest(1,100,latlng.lat,latlng.lng,1000);
 
-        //TODO: display new POI on map
+        // Redraw POI layer
         this.drawMap();
       })
 
@@ -157,15 +186,26 @@ export class MapWidget extends LitElement {
         });
       }
     });
+
     /** Add maker layer in the cluster group */
     this.municipalities_layer_columns.addLayer(columns_layer);
     /** Add the cluster group to the map */
     this.map.addLayer(this.municipalities_layer_columns);
+
+    // Add Event Listener after a popup is opened
+    this.map.on('popupopen', () => {
+      this.addPopupTabs();
+      this.openTab(null, 'WeatherForecast');  // Automatisch den 'WeatherForecast' Tab öffnen
+    });
   }
+
+
 
   async firstUpdated() {
     this.initializeMap();
     this.drawMap();
+
+    this.addPopupTabs();
   }
 
   addPointsOfInterestLayer(markers_list) {
@@ -233,4 +273,32 @@ export class MapWidget extends LitElement {
       </div>
     `;
   }
+
+  // functions for popup tabs
+  openTab(evt, tabName) {
+    const currentTarget = evt ? evt.currentTarget : this.shadowRoot.querySelector(`.tablinks[data-tab='${tabName}']`);
+    const tabcontent = this.shadowRoot.querySelectorAll(".tabcontent");
+    tabcontent.forEach(tc => tc.style.display = "none");
+    const tablinks = this.shadowRoot.querySelectorAll(".tablinks");
+    tablinks.forEach(tl => tl.classList.remove("active"));
+    this.shadowRoot.querySelector(`#${tabName}`).style.display = "block";
+    currentTarget.classList.add("active");
+  }
+
+
+
+  // Helper method for adding event listeners to the tab buttons
+  addPopupTabs() {
+    const buttons = this.shadowRoot.querySelectorAll(".tablinks");
+    buttons.forEach(button => {
+      button.addEventListener('click', (e) => this.openTab(e, button.getAttribute('data-tab')));
+    });
+
+    // Activate the first tab by default
+    const firstTab = buttons[0];
+    if (firstTab) {
+      this.openTab({ currentTarget: firstTab }, firstTab.getAttribute('data-tab'));
+    }
+  }
+
 }

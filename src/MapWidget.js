@@ -140,11 +140,11 @@ export class MapWidget extends LitElement {
           </div>
           <div id="WeatherForecast" class="tabcontent" style="display: block;">
             <h4>Weather Forecast</h4>
-            <table>`;
-            municipality.weatherForecast.forEach(ForeCastDaily => {
-              popupCont += `<tr><td>${ formatDateInLang(ForeCastDaily.Date) }</td><td>${ ForeCastDaily.WeatherDesc }</td><td><img src='${ ForeCastDaily.WeatherImgUrl }' /></td></tr>`;
-            });
-            popupCont += `</table>
+            <table>
+              <tr>${municipality.weatherForecast.map(f => `<td>${formatDateInLang(f.Date)}</td>`).join('')}</tr>
+              <tr>${municipality.weatherForecast.map(f => `<td><img src='${f.WeatherImgUrl}' /></td>`).join('')}</tr>
+              <tr>${municipality.weatherForecast.map(f => `<td>${f.WeatherDesc}</td>`).join('')}</tr>
+            </table>
           </div>
           <div id="Details" class="tabcontent" style="display: none;">
             <h4>Details</h4>
@@ -152,6 +152,8 @@ export class MapWidget extends LitElement {
           </div>
         </div>
       </div>`;
+
+      
 
       let popup = L.popup().setContent(popupCont);
 

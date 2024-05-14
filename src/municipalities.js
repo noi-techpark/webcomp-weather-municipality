@@ -28,9 +28,9 @@ export function addMunicipalitiesLayer(markers_list) {
             <div id="WeatherForecast" class="tabcontent" style="display: block;">
                 <h4>Weather Forecast</h4>
                 <table>
-                    <tr>${municipality.weatherForecast.map(f => `<td>${formatDateInLang(f.Date)}</td>`).join('')}</tr>
+                    <tr>${municipality.weatherForecast.map(f => `<td>${formatDateInLang(f.Date,this.locale)}</td>`).join('')}</tr>
                     <tr>${municipality.weatherForecast.map(f => `<td><img src='${f.WeatherImgUrl}' /></td>`).join('')}</tr>
-                    <tr>${municipality.weatherForecast.map(f => `<td>${f.WeatherDesc}</td>`).join('')}</tr>;
+                    <tr>${municipality.weatherForecast.map(f => `<td>${f.WeatherDesc}</td>`).join('')}</tr>
                 </table>
             </div>
             <div id="Details" class="tabcontent" style="display: none;">

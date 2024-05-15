@@ -18,33 +18,34 @@ export function addMunicipalitiesLayer(markers_list) {
         let popupCont = `
         <div class="popup">
             <div class="popup-header">
-            <h3>${municipality.Plz} ${municipality.Shortname}</h3>
+                <h3>${municipality.Plz} ${municipality.Shortname}</h3>
             </div>
             <div class="popup-body">
-            <div class="tabs">
-                <button class="tablinks" data-tab="WeatherForecast">Weather Forecast</button>
-                <button class="tablinks" data-tab="Details">Details</button>
-            </div>
-            <div id="WeatherForecast" class="tabcontent" style="display: block;">
-                <h4>Weather Forecast</h4>
-                <table>
-                    <tr>${municipality.weatherForecast.map(f => `<td>${formatDateInLang(f.Date,this.locale)}</td>`).join('')}</tr>
-                    <tr>${municipality.weatherForecast.map(f => `<td><img src='${f.WeatherImgUrl}' /></td>`).join('')}</tr>
-                    <tr>${municipality.weatherForecast.map(f => `<td>${f.WeatherDesc}</td>`).join('')}</tr>
-                </table>
-            </div>
-            <div id="Details" class="tabcontent" style="display: none;">
-                <h4>Details</h4>
-                <p>More details here...</p>
-            </div>
+                <div class="tabs">
+                    <button class="tablinks" data-tab="WeatherForecast">Weather Forecast</button>
+                    <button class="tablinks" data-tab="Details">Details</button>
+                    <button class="tablinks" data-tab="NewTab">New Tab</button> <!-- Neuer Tab-Button -->
+                </div>
+                <div id="WeatherForecast" class="tabcontent active">
+                    <h4>Weather Forecast</h4>
+                    <table>
+                        <tr>${municipality.weatherForecast.map(f => `<td>${formatDateInLang(f.Date,this.locale)}</td>`).join('')}</tr>
+                        <tr>${municipality.weatherForecast.map(f => `<td><img src='${f.WeatherImgUrl}' /></td>`).join('')}</tr>
+                        <tr>${municipality.weatherForecast.map(f => `<td>${f.WeatherDesc}</td>`).join('')}</tr>
+                    </table>
+                </div>
+                <div id="Details" class="tabcontent">
+                    <h4>Details</h4>
+                    <p>More details here...</p>
+                </div>
+                <div id="NewTab" class="tabcontent"> <!-- Neuer Tab-Inhalt -->
+                    <h4>New Tab Content</h4>
+                    <p>Content for the new tab goes here...</p>
+                </div>
             </div>
         </div>`;
 
         let popup = L.popup().setContent(popupCont);
-
-        popup.on('add', () => {
-            this.openTab(null, 'WeatherForecast');  // Stellt sicher, dass 'Weather' sofort sichtbar ist
-        });
 
         let marker = L.marker(pos, {
             icon: icon,
@@ -62,10 +63,14 @@ export function addMunicipalitiesLayer(markers_list) {
             }
 
             // Fetch POI near selected Lat/Lon
-            await this.fetchPointsOfInterest(this.language,1,100,latlng.lat,latlng.lng,1000,new Date());
+            await this.fetchPointsOfInterest(this.language, 1, 100, latlng.lat, latlng.lng, 1000, new Date());
 
             // Redraw POI layer
             this.drawPoiMap();
+
+            // Open the popup and activate the WeatherForecast tab
+            this.map.openPopup(popup, latlng);
+            setTimeout(() => this.openTab(null, 'WeatherForecast'), 0); // Sicherstellen, dass 'WeatherForecast' aktiviert ist
         })
 
         markers_list.push(marker);
@@ -94,7 +99,7 @@ export function addMunicipalitiesLayer(markers_list) {
     // Add Event Listener after a popup is opened
     this.map.on('popupopen', () => {
         this.addPopupTabs();
-        this.openTab(null, 'WeatherForecast');  // Automatisch den 'WeatherForecast' Tab öffnen
+        setTimeout(() => this.openTab(null, 'WeatherForecast'), 0); // Automatisch den 'WeatherForecast' Tab öffnen
     });
 }
 

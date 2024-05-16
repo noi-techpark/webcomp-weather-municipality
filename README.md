@@ -145,7 +145,7 @@ docker-compose run --rm app /bin/bash -c "npm run build"
 
 ### Support
 
-For support, please contact [info@opendatahub.com](mailto:info@opendatahub.com).
+For support, feel free to open an Issue. We'll try to give you support.
 
 ### Contributing
 

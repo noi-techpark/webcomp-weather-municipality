@@ -21,26 +21,13 @@ export function addMunicipalitiesLayer(markers_list) {
                 <h3>${municipality.Plz} ${municipality.Shortname}</h3>
             </div>
             <div class="popup-body">
-                <div class="tabs">
-                    <button class="tablinks" data-tab="WeatherForecast">Weather Forecast</button>
-                    <button class="tablinks" data-tab="Details">Details</button>
-                    <button class="tablinks" data-tab="NewTab">New Tab</button> <!-- Neuer Tab-Button -->
-                </div>
-                <div id="WeatherForecast" class="tabcontent active">
+                <div id="WeatherForecast">
                     <h4>Weather Forecast</h4>
                     <table>
                         <tr>${municipality.weatherForecast.map(f => `<td>${formatDateInLang(f.Date,this.locale)}</td>`).join('')}</tr>
                         <tr>${municipality.weatherForecast.map(f => `<td><img src='${f.WeatherImgUrl}' /></td>`).join('')}</tr>
                         <tr>${municipality.weatherForecast.map(f => `<td>${f.WeatherDesc}</td>`).join('')}</tr>
                     </table>
-                </div>
-                <div id="Details" class="tabcontent">
-                    <h4>Details</h4>
-                    <p>More details here...</p>
-                </div>
-                <div id="NewTab" class="tabcontent"> <!-- Neuer Tab-Inhalt -->
-                    <h4>New Tab Content</h4>
-                    <p>Content for the new tab goes here...</p>
                 </div>
             </div>
         </div>`;
@@ -68,9 +55,8 @@ export function addMunicipalitiesLayer(markers_list) {
             // Redraw POI layer
             this.drawPoiMap();
 
-            // Open the popup and activate the WeatherForecast tab
+            // Open the popup
             this.map.openPopup(popup, latlng);
-            setTimeout(() => this.openTab(null, 'WeatherForecast'), 0); // Sicherstellen, dass 'WeatherForecast' aktiviert ist
         })
 
         markers_list.push(marker);
@@ -95,12 +81,6 @@ export function addMunicipalitiesLayer(markers_list) {
     this.municipalities_layer_columns.addLayer(columns_layer);
     /** Add the cluster group to the map */
     this.map.addLayer(this.municipalities_layer_columns);
-
-    // Add Event Listener after a popup is opened
-    this.map.on('popupopen', () => {
-        this.addPopupTabs();
-        setTimeout(() => this.openTab(null, 'WeatherForecast'), 0); // Automatisch den 'WeatherForecast' Tab öffnen
-    });
 }
 
 export function addWeatherForecastToMunicipality() {

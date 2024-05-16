@@ -4,7 +4,6 @@ import leaflet_mrkcls from 'leaflet.markercluster';
 import style__leaflet from 'leaflet/dist/leaflet.css';
 import style__markercluster from 'leaflet.markercluster/dist/MarkerCluster.css';
 import style from './scss/main.scss';
-import popupStyle from './scss/popup.scss';
 import { getStyle } from './utils.js';
 import { fetchMunicipalities, fetchWeatherForecasts, fetchPointsOfInterest } from './api/ninjaApi.js';
 import { addPointsOfInterestLayer } from './pointsOfInterest.js';
@@ -17,6 +16,10 @@ export class MapWidget extends LitElement {
         type: String,
         attribute: 'lang-and-locale'
       },
+      logInfo: {
+        type: Boolean,
+        attribute: 'log-info'
+      }
     };
   }
 
@@ -34,6 +37,9 @@ export class MapWidget extends LitElement {
     this.language = this.language_default;
     this.locale_default = 'en-US';
     this.locale = this.locale_default;
+
+    /* Debugging Info */
+    this.logDebugging = false;
 
     /* Data fetched from Open Data Hub */
     this.municipalities = [];
@@ -64,6 +70,7 @@ export class MapWidget extends LitElement {
   async initComponent() {
     this.language = this.langAndLocale ? this.langAndLocale.slice(0,2) : this.language_default;
     this.locale = this.langAndLocale;
+    this.logDebugging = this.logInfo ? this.logInfo : false;
   }
 
   async initializeMap() {
@@ -111,7 +118,6 @@ export class MapWidget extends LitElement {
         ${getStyle(style__markercluster)}
         ${getStyle(style__leaflet)}
         ${getStyle(style)}
-        ${getStyle(popupStyle)} // Einbinden der neuen SCSS-Datei
       </style>
       <div id="map_widget">
         <div id="map" class="map"></div>

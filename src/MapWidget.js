@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: NOI Techpark <digital@noi.bz.it>
+//
+// SPDX-License-Identifier: MPL-2.0
+
 import { html, LitElement } from 'lit-element';
 import L from 'leaflet';
 import leaflet_mrkcls from 'leaflet.markercluster';

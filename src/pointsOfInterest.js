@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: NOI Techpark <digital@noi.bz.it>
+//
+// SPDX-License-Identifier: MPL-2.0
 
 export function addPointsOfInterestLayer(markers_list) {
     this.pointsOfInterest.map(pointOfInterest => {

@@ -40,7 +40,7 @@
     "options": [
       {
         "key": "lang-and-locale",
-        "type": "multiselect",
+        "type": "select",
         "required": false,
         "options": {
           "values": [
@@ -52,12 +52,16 @@
             "it-IT",
             "it-CH"
           ]
-        }
+        },
+        "default": "en-US"
       },
       {
         "key": "log-info",
         "type": "boolean",
-        "required": false
+        "required": false,
+        "options": {
+          "default": false
+        }
       }
     ]
   }

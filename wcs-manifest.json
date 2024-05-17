@@ -51,13 +51,13 @@
             "en-UK",
             "it-IT",
             "it-CH"
-          ]
-        },
-        "default": "en-US"
+          ],
+          "default": "en-US"
+        }
       },
       {
         "key": "log-info",
-        "type": "boolean",
+        "type": "bool",
         "required": false,
         "options": {
           "default": false

@@ -3,7 +3,7 @@
   "description": "A map that shows the weather and hiking trails for each municipality.",
   "descriptionAbstract": "Map to show weather and hiking trails",
   "license": "AGPL-3.0-or-later",
-  "repositoryUrl": "https://github.com/noi-techpark/webcomp-weather-municipality",
+  "repositoryUrl": "https://github.com/noi-techpark/webcomp-weather-municipality.git",
   "shortName": "day-trip-planner",
   "copyrightHolders": [
     {

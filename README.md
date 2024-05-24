@@ -4,12 +4,14 @@ SPDX-FileCopyrightText: NOI Techpark <digital@noi.bz.it>
 SPDX-License-Identifier: CC0-1.0
 -->
 
-# day-trip-planner
+# Day Trip Planner
 This project is a webcomponent to display weather by municipality and hiking trails for the selected municipality.
 We started using the [webcomp-generic-map](https://github.com/noi-techpark/webcomp-generic-map) component provided by NOI Techpark and the [Open Data
 Hub](https://opendatahub.com).
 
 Our idea was to provide a simple webcomponent that can be used by hotels, bed and breakfasts and other tourism platforms. The component should help tourists (or locals) find hiking trails in the vicinity with information about the weather, to know if they can plan for a trail.
+
+_Note that this Repository is replaced by the repository [Webcomp Weather Municipality](https://github.com/noi-techpark/webcomp-weather-municipality) hosted by ODH._
 
 ## Table of contents
 
@@ -24,22 +26,41 @@ Our idea was to provide a simple webcomponent that can be used by hotels, bed an
 Include the Javascript file `dist/day_trip_map_widget.min.js` in your HTML and define the web component like this:
 
 ```html
-<day-trip-map-widget lang-and-locale="de-DE" log-info></day-trip-map-widget>
+<day-trip-map-widget
+    lang-and-locale="de-DE"
+    municipality-id="B8B229D4245344D1AB274A938F9D35E4"
+    show-pois
+    poi-search-radius-in-m=3000
+    log-info>
+</day-trip-map-widget>
 ```
 
 ### Attributes
-
 #### lang-and-locale
-
-Type: multiselect
-Options: "en-US", "en-UK", "de-DE", "de-AT", "de-CH", "it-IT", "it-CH"
+Type: select\
+Options: "en-US", "en-UK", "de-DE", "de-AT", "de-CH", "it-IT", "it-CH"\
 Default: "en-US"
 
-#### log-info
+#### municipality-id
+Type: text\
+Default: ""
 
-Type: boolean
-Options: true, false
-Default: false
+#### show-pois
+Type: boolean\
+Options: true, false\
+Default: false\
+_Simply omit this attribute if you do not wish to see any points of interest when clicking on a municipality._
+
+#### poi-search-radius-in-m
+Type: number\
+Minimum: 0\
+Maximum: 10000\
+Default: 3000
+
+#### log-info
+Type: boolean\
+Options: true, false\
+Default: false\
 _Simply omit this attribute if you do not wish to see any logs in the console._
 
 ## Getting started

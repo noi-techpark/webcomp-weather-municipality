@@ -28,7 +28,7 @@
     }
   ],
   "image": "wcs-logo.png",
-  "searchTags": ["map","hike","weather","municipality","municipalities","trip","day","forecast","wander"],
+  "searchTags": ["map","weather","forecast"],
   "dist": {
     "basePath": "dist",
     "files": [

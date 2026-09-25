@@ -12,26 +12,30 @@ module.exports = {
     filename: 'day_trip_map_widget.min.js'
   },
   module: {
-    rules: [
-      {
-        test: /\.(s*)css$/,
-        use: [{ loader: 'css-loader' }, { loader: 'sass-loader' }]
-      },
-      {
-        test: /\.(png|jpg|gif|ttf)$/i,
-        use: [
-          {
-            loader: 'url-loader',
-            options: {
-              limit: 10000
-            }
+  rules: [
+    {
+      test: /\.scss$/,
+      use: [{ loader: 'css-loader' }, { loader: 'sass-loader' }]
+    },
+    {
+      test: /\.css$/,
+      use: [{ loader: 'css-loader' }]
+    },
+    {
+      test: /\.(png|jpg|gif|ttf)$/i,
+      use: [
+        {
+          loader: 'url-loader',
+          options: {
+            limit: 10000
           }
-        ]
-      },
-      {
-        test: /\.svg$/,
-        loader: 'svg-inline-loader'
-      }
-    ]
-  }
+        }
+      ]
+    },
+    {
+      test: /\.svg$/,
+      loader: 'svg-inline-loader'
+    }
+  ]
+},
 };

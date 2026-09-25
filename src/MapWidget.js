@@ -5,8 +5,11 @@
 import { html, LitElement } from 'lit-element';
 import L from 'leaflet';
 import leaflet_mrkcls from 'leaflet.markercluster';
+import maplibregl from 'maplibre-gl';
+import '@maplibre/maplibre-gl-leaflet';
 import style__leaflet from 'leaflet/dist/leaflet.css';
 import style__markercluster from 'leaflet.markercluster/dist/MarkerCluster.css';
+import style__maplibregl from 'maplibre-gl/dist/maplibre-gl.css';
 import style from './scss/main.scss';
 import { getStyle } from './utils.js';
 import { fetchMunicipalities, fetchWeatherForecasts, fetchPointsOfInterest, fetchSingleMunicipality } from './api/ninjaApi.js';
@@ -45,8 +48,8 @@ export class MapWidget extends LitElement {
     /* Map configuration */
     this.map_center = [46.479, 11.331];
     this.map_zoom = 10;
-    this.map_layer = "https://cartodb-basemaps-{s}.global.ssl.fastly.net/rastertiles/voyager/{z}/{x}/{y}.png";
-    this.map_attribution = '<a target="_blank" href="https://opendatahub.com">OpenDataHub.com</a> | &copy; <a target="_blank" href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>, &copy; <a target="_blank" href="https://carto.com/attribution">CARTO</a>';
+    this.map_layer = "https://tiles.openfreemap.org/styles/positron";
+    this.map_attribution = '&copy; <a target="_blank" href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors | <a target="_blank" href="https://openfreemap.org">OpenFreeMap</a>';
 
     /* Localization (Language & Region) */
     this.locale_default = 'en-US';
@@ -106,17 +109,20 @@ export class MapWidget extends LitElement {
   }
 
   async initializeMap() {
-    let root = this.shadowRoot;
-    let mapref = root.getElementById('map');
+  let root = this.shadowRoot;
+  let mapref = root.getElementById('map');
 
-    this.map = L.map(mapref, {
-      zoomControl: false
-    }).setView(this.map_center, this.map_zoom);
+  this.map = L.map(mapref, {
+    zoomControl: false,
+    minZoom: 0,
+    maxZoom: 19
+  }).setView(this.map_center, this.map_zoom);
 
-    L.tileLayer(this.map_layer, {
-      attribution: this.map_attribution
-    }).addTo(this.map);
-  }
+  L.maplibreGL({
+    style: this.map_layer,
+    attribution: this.map_attribution
+  }).addTo(this.map);
+}
 
   async drawMunicipalitiesMap() {
     if (this.municipalities.length === 0) {
@@ -151,6 +157,7 @@ export class MapWidget extends LitElement {
       <style>
         ${getStyle(style__markercluster)}
         ${getStyle(style__leaflet)}
+        ${getStyle(style__maplibregl)}
         ${getStyle(style)}
       </style>
       <div id="map_widget">
